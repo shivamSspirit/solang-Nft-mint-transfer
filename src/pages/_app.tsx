@@ -18,8 +18,10 @@ const App: FC<AppProps> = ({ Component, pageProps }) => {
             <ContextProvider>
                 <div className="flex flex-col min-h-screen bg-[#000] bg-contain bg-no-repeat bg-[url('/heroBg.png')] relative">
                     <Notifications />
-                    <AppBar />
-                    <Component {...pageProps} />
+                    <div className="min-h-[calc(100vh-86px)]">
+                        <AppBar />
+                        <Component {...pageProps} />
+                    </div>
                     <Footer />
                 </div>
             </ContextProvider>

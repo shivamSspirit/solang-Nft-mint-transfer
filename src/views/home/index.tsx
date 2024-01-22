@@ -1,21 +1,14 @@
 // Next, React
-import { FC, useEffect, useState } from "react";
-import Link from "next/link";
+import { FC, useEffect } from "react";
 
 // Wallet
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 
-// Components
-import { RequestAirdrop } from "../../components/RequestAirdrop";
-
 // Store
 import useUserSOLBalanceStore from "../../stores/useUserSOLBalanceStore";
 
-import { CreateTokenAccountForm } from "components/CreateTokenAccount";
-import { MintToForm } from "components/MintToForm";
-import { TransferToken } from "components/TransferToken";
 import { MintNFTButton } from "components/MintNFTButton";
-import { NFTList } from "components/nft/NFTList";
+import * as anchor from "@coral-xyz/anchor";
 
 export const HomeView: FC = ({}) => {
     const wallet = useWallet();
@@ -23,6 +16,9 @@ export const HomeView: FC = ({}) => {
 
     const balance = useUserSOLBalanceStore((s) => s.balance);
     const { getUserSOLBalance } = useUserSOLBalanceStore();
+
+    // Mint Account
+    const mintKeypair = anchor.web3.Keypair.generate();
 
     useEffect(() => {
         if (wallet.publicKey) {
@@ -35,39 +31,7 @@ export const HomeView: FC = ({}) => {
         <div className="md:px-32 px-4 mx-auto py-12 max-w-7xl">
             <div className="md:px-16 px-4 pt-4 flex flex-col items-start gap-y-16">
                 <div className="flex flex-col gap-16 w-full items-center">
-                    <div>
-                        <p className="text-3xl font-semibold">My NFTs</p>
-                    </div>
-                    <MintNFTButton />
-                    <NFTList />
-                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 lg:w-1/2 w-full">
-                        <CreateTokenAccountForm />
-                    </div>
-                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 lg:w-1/2 w-full">
-                        <MintToForm />
-                    </div>
-                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg p-8 lg:w-1/2 w-full">
-                        <TransferToken />
-                    </div>
-                </div>
-
-                <div className="flex gap-16 w-full lg:flex-row flex-col-reverse">
-                    <div className="bg-white border-white bg-blur bg-opacity-30 rounded-lg px-16 py-12 text-xl">
-                        You SOL balance is
-                        <h4 className="text-2xl font-semibold text-white mt-4">
-                            {wallet && (
-                                <div className="flex flex-row justify-center">
-                                    <div>{(balance || 0).toLocaleString()}</div>
-                                    <div className="text-white ml-2">SOL</div>
-                                </div>
-                            )}
-                        </h4>
-                    </div>
-                    <div className="flex justify-center items-center m-auto">
-                        <div className="">
-                            <RequestAirdrop />
-                        </div>
-                    </div>
+                    <MintNFTButton mint={mintKeypair} />
                 </div>
             </div>
         </div>
