@@ -137,7 +137,3 @@ await program.methods
 ```
 
 BOOM! You have successfully minted and transferred the NFT.
-
-```
-
-```
