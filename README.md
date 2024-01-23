@@ -56,7 +56,7 @@ Open http://localhost:3000 with your browser to see the DApp.
 
 To mint a new NFT first you have to create a mint for that nft and then get the token account for the NFT and then mint the NFT in that account.
 
-````javascript
+```javascript
 await program.methods
     .createTokenMint(
         dataAccountPDA,
@@ -79,15 +79,15 @@ await program.methods
 
 ```javascript
 await program.methods
-   .mintTo()
-   .accounts({
-      pdaAccount: dataAccountPDA,
-      payer: wallet.publicKey,
-      tokenAccount: tokenAccount,
-      owner: wallet.publicKey,
-      mint: mintKeypair.publicKey,
-   })
-   .rpc({ skipPreflight: true });
+    .mintTo()
+    .accounts({
+        pdaAccount: dataAccountPDA,
+        payer: wallet.publicKey,
+        tokenAccount: tokenAccount,
+        owner: wallet.publicKey,
+        mint: mintKeypair.publicKey,
+    })
+    .rpc({ skipPreflight: true });
 ```
 
 To get the NFT metadata you can use the methods by Metaplex.
@@ -137,4 +137,7 @@ await program.methods
 ```
 
 BOOM! You have successfully minted and transferred the NFT.
-````
+
+```
+
+```
