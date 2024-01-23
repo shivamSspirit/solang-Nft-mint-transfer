@@ -47,8 +47,8 @@ export const MintNFTButton = ({ mint: mintKeypair }: { mint: Keypair }) => {
     // Derive the PDA that will be used to initialize the dataAccount.
     const [dataAccountPDA, bump] = PublicKey.findProgramAddressSync([Buffer.from("mint_authority")], program.programId);
 
-    const nftTitle = "Guchi";
-    const nftSymbol = "Guch";
+    const nftTitle = "Homer NFT";
+    const nftSymbol = "HOMR";
     const nftUri =
         "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/nft.json";
 

@@ -1,6 +1,6 @@
 import { WalletAdapterNetwork, WalletError } from "@solana/wallet-adapter-base";
 import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { PhantomWalletAdapter, UnsafeBurnerWalletAdapter } from "@solana/wallet-adapter-wallets";
+import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
 import { Cluster, clusterApiUrl } from "@solana/web3.js";
 import { FC, ReactNode, useCallback, useMemo } from "react";
 import { AutoConnectProvider, useAutoConnect } from "./AutoConnectProvider";
@@ -32,7 +32,7 @@ const WalletContextProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
     return (
         // TODO: updates needed for updating and referencing endpoint: wallet adapter rework
-        <ConnectionProvider config={{ commitment: "confirmed" }} endpoint={endpoint}>
+        <ConnectionProvider endpoint={endpoint}>
             <WalletProvider wallets={wallets} onError={onError} autoConnect={autoConnect}>
                 <ReactUIWalletModalProviderDynamic>{children}</ReactUIWalletModalProviderDynamic>
             </WalletProvider>

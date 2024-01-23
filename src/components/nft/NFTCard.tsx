@@ -73,8 +73,6 @@ export const NFTCard = ({ mint, nftDetails }: { mint: Keypair; nftDetails: Sft |
                 ASSOCIATED_TOKEN_PROGRAM_ID
             );
 
-            console.info("buyerTokenAccount", buyerTokenAccount.toBase58());
-
             try {
                 await getAccount(connection, buyerTokenAccount);
             } catch (e) {
@@ -83,26 +81,25 @@ export const NFTCard = ({ mint, nftDetails }: { mint: Keypair; nftDetails: Sft |
                         publicKey,
                         buyerTokenAccount,
                         buyerPublicKey,
-                        mint.publicKey
+                        mint.publicKey,
+                        TOKEN_PROGRAM_ID,
+                        ASSOCIATED_TOKEN_PROGRAM_ID
                     )
                 );
+                // transaction.add(instruction);
+                transaction.feePayer = wallet.publicKey;
+
+                const tx1 = await sendTransaction(transaction, connection);
             }
 
-            const instruction = await program.methods
+            const tx = await program.methods
                 .transferNft()
                 .accounts({
                     owner: wallet.publicKey,
                     from: sellerTokenAccount,
                     to: buyerTokenAccount,
                 })
-                .instruction();
-
-            transaction.add(instruction);
-            transaction.feePayer = wallet.publicKey;
-
-            console.info(transaction);
-
-            const tx = await sendTransaction(transaction, connection);
+                .rpc({ skipPreflight: true });
 
             setTxSig(tx);
 
