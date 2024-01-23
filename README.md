@@ -75,7 +75,7 @@ await program.methods
     })
     .signers([mintKeypair])
     .rpc({ skipPreflight: true });
-```;
+```
 
 ```javascript
 await program.methods
@@ -88,7 +88,7 @@ await program.methods
       mint: mintKeypair.publicKey,
    })
    .rpc({ skipPreflight: true });
-````
+```
 
 To get the NFT metadata you can use the methods by Metaplex.
 
@@ -137,3 +137,4 @@ await program.methods
 ```
 
 BOOM! You have successfully minted and transferred the NFT.
+````
