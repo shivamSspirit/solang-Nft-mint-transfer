@@ -17,6 +17,21 @@ import { notify } from "utils/notifications";
 import { Nft, Sft, Metaplex } from "@metaplex-foundation/js";
 import { set } from "date-fns";
 import { LinkIcon, Loader } from "components/Icons";
+import { BN } from "bn.js";
+
+
+/* eslint-disable @next/next/no-img-element */
+
+
+
+
+
+
+
+
+
+
+
 
 const opts: { preflightCommitment: Commitment } = {
     preflightCommitment: "processed",
@@ -93,11 +108,12 @@ export const NFTCard = ({ mint, nftDetails }: { mint: Keypair; nftDetails: Sft |
             }
 
             const tx = await program.methods
-                .transferNft()
+                .transferTokens(new BN(1))
                 .accounts({
-                    owner: wallet.publicKey,
-                    from: sellerTokenAccount,
-                    to: buyerTokenAccount,
+                    from: publicKey,
+					fromAta: sellerTokenAccount,
+					toAta: buyerTokenAccount,
+					tokenProgram: TOKEN_PROGRAM_ID
                 })
                 .rpc({ skipPreflight: true });
 
