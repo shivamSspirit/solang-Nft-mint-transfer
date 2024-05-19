@@ -108,18 +108,19 @@ export const NFTCard = ({ mint, nftDetails }: { mint: Keypair; nftDetails: Sft |
             }
 
             const tx = await program.methods
-                .transferTokens(new BN(1))
+                .transferNft()
                 .accounts({
-                    from: publicKey,
-					fromAta: sellerTokenAccount,
-					toAta: buyerTokenAccount,
-					tokenProgram: TOKEN_PROGRAM_ID
+                    owner: wallet.publicKey,
+                    from: sellerTokenAccount,
+                    to: buyerTokenAccount,
                 })
                 .rpc({ skipPreflight: true });
 
             setTxSig(tx);
 
             const buyerTokenAccountAmount = (await getAccount(connection, buyerTokenAccount)).amount;
+
+            console.log("buyerTokenAccountAmount:",buyerTokenAccountAmount)
 
             notify({ message: "NFT Transferred" });
         } catch (err) {

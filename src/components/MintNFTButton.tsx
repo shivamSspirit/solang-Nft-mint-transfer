@@ -20,27 +20,8 @@ import { loadKeypairFromFile } from "../utils/loadPair";
 
 
 import { Spltokens } from "../../contracttypes";
-import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { walletAdapterIdentity } from "@metaplex-foundation/umi-signer-wallet-adapters";
 import { findMasterEditionPda, findMetadataPda, mplTokenMetadata, MPL_TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 const programId = new PublicKey(idl.metadata.address);
@@ -56,13 +37,12 @@ export const MintNFTButton = ({ mint: mintKeypair }: { mint: Keypair }) => {
 
     // new stats
     const [allNftByWallet, setAllNftByWallet] = useState<any>();
-
-    console.log("allNftByWallet",allNftByWallet)
+   // console.log("allNftByWallet", allNftByWallet)
 
     const { connection } = useConnection();
     const wallet = useWallet();
-
-    console.log("mint:", mintKeypair);
+    const { publicKey, sendTransaction } = useWallet();
+  //  console.log("mint:", mintKeypair);
 
     const link = () => {
         return txSig ? `https://explorer.solana.com/tx/${txSig}?cluster=devnet` : "";
@@ -71,7 +51,6 @@ export const MintNFTButton = ({ mint: mintKeypair }: { mint: Keypair }) => {
 
     const getProgram = () => {
         /* create the provider and return it to the caller */
-
         const provider = new AnchorProvider(connection, wallet as any, opts);
         /* create the program interface combining the idl, program ID, and provider */
         const program = new Program(idl as Idl, programId, provider);
@@ -80,46 +59,20 @@ export const MintNFTButton = ({ mint: mintKeypair }: { mint: Keypair }) => {
 
     const program = getProgram();
 
+    const associatedTokenAccount = wallet.publicKey !== null && getAssociatedTokenAddressSync(
+        mintKeypair.publicKey,
+        wallet.publicKey
+    );
 
-   // const signer = wallet;
-	const umi = createUmi("https://api.devnet.solana.com").use(walletAdapterIdentity(wallet)).use(mplTokenMetadata());
-	//const mint = anchor.web3.Keypair.generate();
-
-	const associatedTokenAccount = getAssociatedTokenAddressSync(
-		mintKeypair.publicKey,
-		wallet.publicKey
-	);
-
-	let metadataAccount = findMetadataPda(umi, {
-		mint: publicKey(mintKeypair.publicKey),
-	})[0];
-
-	let masterEditionAccount = findMasterEditionPda(umi, {
-		mint: publicKey(mintKeypair.publicKey),
-	})[0];
-
-	const MetaData = {
-		name: "oggggg",
-		symbol: "Oggy",
-		uri: "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/nft.json",
-	};
-
-
-
-
-
-
-
-
-
+    const MetaData = {
+        name: "oggggg",
+        symbol: "Oggy",
+        uri: "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/nft.json",
+    };
 
     // Derive the PDA that will be used to initialize the dataAccount.
     // const [dataAccountPDA, bump] = PublicKey.findProgramAddressSync([Buffer.from("mint_authority")], program.programId);
-
-    // const nftTitle = "Homer NFT";
-    // const nftSymbol = "HOMR";
-    // const nftUri =
-    //     "https://raw.githubusercontent.com/solana-developers/program-examples/new-examples/tokens/tokens/.assets/nft.json";
+    const [dataAccountPDA, bump] = PublicKey.findProgramAddressSync([Buffer.from("mint_authority")], program.programId);
 
     const mintNft = async (e) => {
         setLoading(true);
@@ -127,34 +80,49 @@ export const MintNFTButton = ({ mint: mintKeypair }: { mint: Keypair }) => {
             e.preventDefault();
 
             const metaplex = Metaplex.make(connection);
-           // const metadataAddress = await metaplex.nfts().pdas().metadata({ mint: mintKeypair.publicKey });
+            // const metadataAddress = await metaplex.nfts().pdas().metadata({ mint: mintKeypair.publicKey })
 
+            const metadataAddress = await metaplex.nfts().pdas().metadata({ mint: mintKeypair.publicKey });
+
+            // Add your test here.
+            const createTx = await program.methods
+                .createTokenMint(
+                    dataAccountPDA,
+                    0, // 0 decimals for NFT
+                    MetaData.name, // NFT name
+                    MetaData.symbol, // NFT symbol
+                    MetaData.uri // NFT URI
+                )
+                .accounts({
+                    payer: wallet.publicKey,
+                    mint: mintKeypair.publicKey,
+                    metadata: metadataAddress,
+                    mintAuthority: dataAccountPDA,
+                    rentAddress: SYSVAR_RENT_PUBKEY,
+                    metaplexId: new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"),
+                })
+                .signers([mintKeypair])
+                .rpc({ skipPreflight: true });
+
+            const tokenAccount = getAssociatedTokenAddressSync(mintKeypair.publicKey, wallet.publicKey);
+            console.log("token acc:", tokenAccount);
+            console.log(`mint nft tx: https://explorer.solana.com/tx/${createTx}?cluster=devnet`);
+            console.log(`minted nft: https://explorer.solana.com/address/${mintKeypair.publicKey}?cluster=devnet`);
 
             const tx = await program.methods
-            .mintNft(MetaData.name, MetaData.symbol, MetaData.uri)
-            .accounts({
-                signer: wallet.publicKey,
-                mint: mintKeypair.publicKey,
-                associatedTokenAccount,
-                metadataAccount,
-                masterEditionAccount,
-                tokenProgram: TOKEN_PROGRAM_ID,
-                associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
-                tokenMetadataProgram: MPL_TOKEN_METADATA_PROGRAM_ID,
-                systemProgram: anchor.web3.SystemProgram.programId,
-                rent: anchor.web3.SYSVAR_RENT_PUBKEY,
-            })
-            .signers([mintKeypair])
-            .rpc();
+                .mintTo()
+                .accounts({
+                    pdaAccount: dataAccountPDA,
+                    payer: wallet.publicKey,
+                    tokenAccount: tokenAccount,
+                    owner: wallet.publicKey,
+                    mint: mintKeypair.publicKey,
+                })
+                .rpc({ skipPreflight: true });
 
-    console.log(`mint nft tx: https://explorer.solana.com/tx/${tx}?cluster=devnet`);
-    console.log(`minted nft: https://explorer.solana.com/address/${mintKeypair.publicKey}?cluster=devnet`);
+             setTxSig(tx);
 
-
-
-            setTxSig(tx);
-
-            let metadata = await metaplex
+             let metadata = await metaplex
                 .nfts()
                 .findByMint({ mintAddress: mintKeypair.publicKey, tokenOwner: wallet.publicKey });
             setNftDetails(metadata);
@@ -164,7 +132,7 @@ export const MintNFTButton = ({ mint: mintKeypair }: { mint: Keypair }) => {
                 owner: wallet.publicKey
             });
 
-            console.log("myNfts:",userNfts);
+            console.log("myNfts:", userNfts);
 
             setAllNftByWallet(userNfts)
         } catch (err) {
@@ -176,7 +144,7 @@ export const MintNFTButton = ({ mint: mintKeypair }: { mint: Keypair }) => {
 
     return (
         <div>
-            {wallet.publicKey ? (
+            {publicKey ? (
                 <form onSubmit={mintNft} className="text-center">
                     <button type="submit" className="btn px-8 bg-purple-500 hover:bg-purple-400">
                         {loading && <Loader />} Mint NFT
